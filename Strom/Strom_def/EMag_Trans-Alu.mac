@@ -1,0 +1,1121 @@
+! ======================================================================
+! Modell-Check / klassicher Import 
+! ======================================================================
+! Ersteller: Ruediger Fichtenau, Dipl.-Ing.(FH),
+! Erstelldatum: 29.01.2019
+! ======================================================================
+! History: 
+! 29.01.2019 RF Initialversion
+! 07.08.2019 CH Einbau Strahlung und conv
+! 12.09.2019 RF StefanBolzmannkonstante
+!               Loop mit Δϑ moeglichkeit
+!               kleine Strahlungskorrekturen
+!               Waermekapazitaet wurde mit 0,85 skaliert
+!               Physics- Dateien werden geloescht
+! 13.09.2019 RF mini DoE
+!               ε variiert
+! 05.12.2019 RF UHC Non Linear Multi
+! ======================================================================
+
+
+! Beschreibung =========================================================
+! Modell rechnet erst Themisch dann Elektrisch ==> Loop
+! FTIME ist der Zeit Parameter
+! Achtung: FTIME wird kurz vor dem Loop nochmals gesetzt, zum Abküren.
+!
+! Bei @@@ gibt es Stoplerstellen
+! Werkstoffe werden 2x eingelesen, bitte vorerste ignorieren
+! 
+! ======================================================================
+
+
+
+Fini
+/clear,start
+/PSEARCH,'./003_MACROS/'
+
+!- ALLGEMEINES =========================================================
+Dateiname = 'V52_Transient'
+/filnam,'%Dateiname%'
+PROJECT = 'EMAG AlMg5 KoBo'
+/title,'%PROJECT%'
+
+! - Mini Doe ===========================================================
+! Eingangsstrom in A
+I_DOE_F=4.00       !run 1
+I_DOE_F=5.00       !run 2
+I_DOE_F=4.85       !run 3
+I_DOE_F=1.00       !run final
+
+
+!- PHysics dateien loeschen
+!/DELETE,,'ph1',
+!/DELETE,,'ph2',
+
+!- SHAPE-CHECKING ======================================================
+/prep7
+shpp,off !# ACHTUNG wegen error elems
+
+!- NETZ-IMPORT =========================================================
+/nopr
+!/inp,'002_GEOM/EMAG','cdb'
+!/inp,'002_GEOM/Kobo','cdb'
+/inp,'002_GEOM/Kobo_Alu_47_5_kHz','cdb'
+*del,_WB_PROJECTSCRATCH_DIR,all     !alle parameter loeschen
+*del,_WB_SOLVERFILES_DIR,all        !alle parameter loeschen
+*del,_WB_USERFILES_DIR,all          !alle parameter loeschen
+/gopr
+
+!- Netz Mod
+cmsel,s,zylinderhaut
+csys,1  
+nsel,r,loc,x,0,20   
+nsel,r,loc,z,5,90   
+cm,weg,node 
+cmsel,s,zylinderhaut
+cmsel,u,weg
+cm,Aussen,node
+csys,0
+
+!- Parameter ===========================================================
+! Naturkonstanten  Einheitensystem
+/prep7
+!EMUNIT,MKS  	        ! Nicht verwenden da die Werte von Hand gesetzt werden
+
+! N | mm | s | k | A
+PERMEABILITAET = 1.25663706144E-06 !N/A²
+PERMETIVITAET = 8.85399999845E-18 !A*s/ (mV*mm) | A²*s² / (N*mm)
+EMUNIT,MUZRO,%PERMEABILITAET%
+EMUNIT,EPZRO,%PERMETIVITAET%
+TOFFST,273              !offset from absolute zero to zero
+INITEMP=25.19           !Initialtemperatur
+stef_=5.669e-011			! stefan boltzmann konst
+stef,stef_
+!emis_=0.2          	! Emisivitaet wird unten als kurve definiert.
+factor_=1			 	! radiation form factor 1 bei strahlung gg unendlich
+conv_ = 5e-3		 	! W/mm²/K
+
+! Strom Liste
+/inp,'001_INPUT/Strom_Alu_2','inp'
+
+!- Statusfile ==========================================================
+!- Kopfzeile
+*CFOPEN,%Dateiname%,sta,,
+*vwrite,'INC','Zeit','T_Ref','T_Diff','I','I_Diff','EMag'
+(A20,'|',5(A20,'|'),A20)
+*CFCLOSE
+
+
+
+! Solver Einstellungen
+FTIME=250.0             !Endzeit
+TINC=1.0                !Zeitschritt
+DELT=0.1                !max. Delta Zeitschritt
+MyTime=0.0              !Startzeit
+FREQUENZ=47500.         !Frequenz in Hz
+Wasser_Temp=20.         !Wassertemperatur
+ITS=1e-3                !Initiale Schrittweite
+MinTS=1e-6              !Minimale Schrittweite
+StepTemp=30.            !Sprungtemperatur der EMag Rechnung
+OldTemp=-273.           !Messtemperatur des vorherigen Steps
+NewTemp=-271.           !Messtemperatur des ersten Steps
+!- Wenn NewTemp >= OldTemp+StepTemp dann wird Emag gestartet
+RefNode=167796          !MessKnoten der Referenz
+MessNode=167840         !MessKnoten der Mess1 Stelle
+BoolKonvektion=1        !Konvektion an = 1 |  aus = 0
+BoolStrahlung=1         !Strahlung an = 1 |  aus = 0
+OldI=0.                 !Strom des vorherigen Steps
+StepStrom=7.0           !Sprungstrom der EMag Rechnung 
+StromNull=7.0           !NullStrom der EMag Rechnung
+Aufloesung=5            !Auflösung des Halbsinus (max 50 ansonstn passt der array nicht mehr)
+debug=1                 !Debugging mode
+existing_=0             ! Emag DB da
+Time_Emag_=0            ! Initial, Dummy
+
+
+!- Alles Randbedingungen löschen =======================================
+/prep7
+LSCLEAR,all
+
+
+!- Element Type ========================================================
+/prep7
+!et,nummer,Type,keyopt Elektromagnetismuselemente + umstellung auf Thermal+EL-MAG
+ET,2998,0                       ! Deaktivierte Elemente tet ²
+ET,2999,0                       ! Deaktivierte Elemente hex ²/ prism² 
+alls
+!Umstellen auf neue Elemente Nur Quaratisch
+!tet²
+esel,s,ename,,87
+esel,a,ename,,187
+esel,a,ename,,227
+emodif,all,type,2998
+!hex ²/ prism² 
+esel,s,ename,,90
+esel,a,ename,,186
+emodif,all,type,2999
+
+!Surfaces löschen
+esel,s,ename,,154
+edele,all
+
+!- Alle Elemente deaktivieren ==========================================
+*Get,E_TYPE_MAX,ETYP,0,NUM,MAX      ! groesste E-Type Nummmer
+alls
+*Get,EL_MIN,elem,0,NUM,MIN          ! kleinste Knotennummer des Setsinp
+*DOWHILE,EL_MIN
+*Get,MyType,ELEM,EL_MIN,ATTR,TYPE   ! E-Type abfragen
+*Get,E_TYPE,ETYP,MyType,ATTR,KOP1   ! Elementdefinition abfragen  
+!KOP1 = 8 ==> Tetraeder 
+!*IF,E_TYPE,eq,8,then
+!*ENDIF
+!KOP1 = 9 ==> Tetraeder ²
+*IF,E_TYPE,eq,9,then
+esel,s,Type,,MyType
+EMODIF,ALL,TYPE,2998
+ETDELE,MyType
+*ENDIF
+!KOP1 = 10 ==> Hexaeder 
+!KOP1 = 11 ==> Hexaeder ²
+*IF,E_TYPE,eq,11,then
+esel,s,Type,,MyType
+EMODIF,ALL,TYPE,2999
+ETDELE,MyType
+*ENDIF
+!Neu selektieren
+alls
+esel,u,Type,,2998
+esel,u,Type,,2999
+*Get,EL_MIN,elem,0,NUM,MIN          ! kleinste Knotennummer des Sets
+*ENDDO
+
+
+alls
+CMPLOT 
+
+
+
+!- Werkstoffe ==========================================================
+MPDELE,all,all ! Alte Definitionen löschen
+!- Neue Definitionen erstellen / lesen
+/inp,'004_MAT/Werkstoffkarte_Luft','cdb'
+/inp,'004_MAT/Werkstoffkarte_VAKUUM','cdb'
+/inp,'004_MAT/Werkstoffkarte_CU_ETP','cdb'
+/inp,'004_MAT/Werkstoffkarte_C71MnVS4_RT_345_VPN_N','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T25','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T100','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T200','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T300','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T400','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T430','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T460','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T490','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T520','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T550','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T580','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T610','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T640','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T670','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T700','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T730','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_VPN297_4_T750','cdb'
+/inp,'004_MAT/Werkstoffkarte_UHC_297_4_VPN','cdb'
+/inp,'004_MAT/Werkstoffkarte_ALU','cdb'
+/inp,'004_MAT/Werkstoffkarte_AlMg5','cdb'
+/inp,'004_MAT/Werkstoffkarte_AlMg5_NL','cdb'
+
+
+
+!- Strahlungswerkstoff
+MPTEMP,,,,,,,,  
+MPTEMP,1,25 
+MPTEMP,2,740
+MPDATA,EMIS,10001,,0.16 
+MPDATA,EMIS,10001,,0.467
+
+
+!- Element Type ========================================================
+/prep7
+!et,nummer,Type,keyopt Elektromagnetismuselemente + umstellung auf Thermal+EL-MAG
+!- Elemente und Werkstoffe zuweisen
+!- Spule
+ET,500,0                            ! tet ² Strom und Temperatur
+ET,501,0                            ! hex ²/ prism² Strom und Temperatur
+cmsel,s,Spule                       ! Spule selektieren
+esel,r,type,,2998                   ! Tetraeder ² selektieren
+EMODIF,ALL,TYPE,500                 ! Tetraeder ² zuweisen
+cmsel,s,Spule                       ! Spule selektieren
+esel,r,type,,2999                   ! Hexaeder ² selektieren
+EMODIF,ALL,TYPE,501                 ! Hexaeder ² zuweisen
+cmsel,s,Spule                       ! Spule selektieren
+EMODIF,ALL,MAT,CU_ETP_ID            ! Werkstoff zuweisen
+
+!- Zylinder
+ET,600,87                           ! tet ² Strom und Temperatur
+ET,601,90                           ! hex ²/ prism² Strom und Temperatur
+cmsel,s,Zylinder                    ! Zylinder selektieren
+esel,r,type,,2998                   ! Tetraeder ² selektieren
+EMODIF,ALL,TYPE,600                 ! Tetraeder ² zuweisen
+cmsel,s,Zylinder                    ! Zylinder selektieren
+esel,r,type,,2999                   ! Hexaeder ² selektieren
+EMODIF,ALL,TYPE,601                 ! Hexaeder ² zuweisen
+cmsel,s,Zylinder                    ! Zylinder selektieren
+EMODIF,ALL,MAT,AlMg5_ID               ! Werkstoff zuweisen
+
+!- Wasser                           ! Hier deaktiviert
+ET,700,0,                           ! tet ² Strom und Temperatur
+ET,701,0,                           ! hex ²/ prism² Strom und Temperatur
+cmsel,s,Wasser                      ! Wasser selektieren
+esel,r,type,,2998                   ! Tetraeder ² selektieren
+EMODIF,ALL,TYPE,700                 ! Tetraeder ² zuweisen
+cmsel,s,Wasser                      ! Wasser selektieren
+esel,r,type,,2999                   ! Hexaeder ² selektieren
+EMODIF,ALL,TYPE,701                 ! Hexaeder ² zuweisen
+cmsel,s,Wasser                      ! Wasser selektieren
+EMODIF,ALL,MAT,VAKUUM_ID            ! Werkstoff zuweisen
+
+!- Luft                             ! Hier deaktiviert
+ET,800,0,                           ! tet ² Strom und Temperatur
+ET,801,0,                           ! hex ²/ prism² Strom und Temperatur
+cmsel,s,Luft                        ! Luft selektieren
+esel,r,type,,2998                   ! Tetraeder ² selektieren
+EMODIF,ALL,TYPE,800                 ! Tetraeder ² zuweisen
+cmsel,s,Luft                        ! Luft selektieren
+esel,r,type,,2999                   ! Hexaeder ² selektieren
+EMODIF,ALL,TYPE,801                 ! Hexaeder ² zuweisen
+cmsel,s,Luft                        ! Luft selektieren
+EMODIF,ALL,MAT,VAKUUM_ID            ! Werkstoff zuweisen
+
+!- Elementsurfs ========================================================
+
+/prep7
+!- Setup
+alls
+cmplo
+
+/prep7
+
+! externer punkt für strahlung
+nsel,none
+n,,0,0,300
+cm,extern_node,node
+*get,n_ext_num, node, 0, NUM, MAX
+alls
+
+!- konvektionselemente umgebung
+et,10000,152		!surf 152
+keyopt,10000,5,0	!extra node include
+keyopt,10000,8,2	!hf ot average T
+
+
+!- strahlungselemente umgebung
+et,10001,152		!surf 152
+keyopt,10001,5,1	!extra node include
+keyopt,10001,9,1	!Real const formfactor
+
+r,10000,
+r,10001,factor_,stef_
+
+!- Elemente der Konvektionshaut
+esel,none
+nsel,none
+cmsel,s,zylinder
+cmsel,a,Zylinderhaut
+type,10000 $ real,10000 
+esurf
+
+!- Elemente der Strahlungshaut
+esel,none
+nsel,none
+cmsel,s,zylinder
+cmsel,a,Zylinderhaut
+cmsel,a,extern_node
+type,10001 $ real,10001 $ mat,10001 
+esurf,n_ext_num
+
+
+!- =====================================================================
+!- =====================================================================
+!- ==========================    Run Loops    ==========================
+!- =====================================================================
+!- =====================================================================
+
+!- Array Offset
+Array_o = 25
+Array_delta = 0.5
+
+
+!- =====================================================================
+!- Start Loop ================================ ! solution *do loop =====
+!- =====================================================================
+!FTIME=0.5                           ! Abkürzung, nur zum testen @@@ Achtung, anpassen
+*do,MY_IStep,1,FTIME/TINC                   ! solution *do loop
+MyTime=MyTime+TINC            		 ! increment time
+/com,MY_IStep
+!- =====================================================================
+!- Temperatur Rechnung =================================================
+!- =====================================================================
+
+!- Dateizuweisung
+FINISH
+/filnam,Therm,0
+!/assign,esav,therm,esav             ! redirect files for use in thermal restart
+!/assign,emat,therm,emat
+/solu
+alls
+
+
+!- Element Type ========================================================
+/prep7
+!et,nummer,Type,keyopt Elektromagnetismuselemente + umstellung auf Thermal+EL-MAG
+!- Elemente und Werkstoffe zuweisen
+!- Spule
+ET,500,200,9                            ! tet ² Strom und Temperatur
+ET,501,200,11                            ! hex ²/ prism² Strom und Temperatur
+!cmsel,s,Spule                       ! Spule selektieren
+!esel,r,type,,2998                   ! Tetraeder ² selektieren
+!EMODIF,ALL,TYPE,500                 ! Tetraeder ² zuweisen
+!cmsel,s,Spule                       ! Spule selektieren
+!esel,r,type,,2999                   ! Hexaeder ² selektieren
+!EMODIF,ALL,TYPE,501                 ! Hexaeder ² zuweisen
+!cmsel,s,Spule                       ! Spule selektieren
+!EMODIF,ALL,MAT,CU_ETP_ID            ! Werkstoff zuweisen
+
+*if,debug,eq,1,then
+/com,'DEBUG Comment'
+/com,'Mat change'
+*endif
+!- Zylinder
+ET,600,87                           ! tet ² Strom und Temperatur
+ET,601,90                           ! hex ²/ prism² Strom und Temperatur
+!cmsel,s,Zylinder                    ! Zylinder selektieren
+!esel,r,type,,2998                   ! Tetraeder ² selektieren
+!EMODIF,ALL,TYPE,600                 ! Tetraeder ² zuweisen
+!cmsel,s,Zylinder                    ! Zylinder selektieren
+!esel,r,type,,2999                   ! Hexaeder ² selektieren
+!EMODIF,ALL,TYPE,601                 ! Hexaeder ² zuweisen
+!cmsel,s,Zylinder                    ! Zylinder selektieren
+!EMODIF,ALL,MAT,UHC_VPN297_4_T25_ID    ! Werkstoff zuweisen
+
+
+*if,debug,eq,1,then
+/com,'DEBUG Comment'
+/com,'Mat change'
+*endif
+
+!- Wasser                           ! Hier deaktiviert
+ET,700,200,9                           ! tet ² Strom und Temperatur
+ET,701,200,11                           ! hex ²/ prism² Strom und Temperatur
+!cmsel,s,Wasser                      ! Wasser selektieren
+!esel,r,type,,2998                   ! Tetraeder ² selektieren
+!EMODIF,ALL,TYPE,700                 ! Tetraeder ² zuweisen
+!cmsel,s,Wasser                      ! Wasser selektieren
+!esel,r,type,,2999                   ! Hexaeder ² selektieren
+!EMODIF,ALL,TYPE,701                 ! Hexaeder ² zuweisen
+!cmsel,s,Wasser                      ! Wasser selektieren
+!EMODIF,ALL,MAT,VAKUUM_ID            ! Werkstoff zuweisen
+
+!- Luft                             ! Hier deaktiviert
+ET,800,200,9                           ! tet ² Strom und Temperatur
+ET,801,200,11                           ! hex ²/ prism² Strom und Temperatur
+!cmsel,s,Luft                        ! Luft selektieren
+!esel,r,type,,2998                   ! Tetraeder ² selektieren
+!EMODIF,ALL,TYPE,800                 ! Tetraeder ² zuweisen
+!cmsel,s,Luft                        ! Luft selektieren
+!esel,r,type,,2999                   ! Hexaeder ² selektieren
+!EMODIF,ALL,TYPE,801                 ! Hexaeder ² zuweisen
+!cmsel,s,Luft                        ! Luft selektieren
+!EMODIF,ALL,MAT,VAKUUM_ID            ! Werkstoff zuweisen
+
+*if,MY_IStep,gt,1,then
+!- Wiederherstellen der SFE
+!- konvektionselemente umgebung
+et,10000,152		!surf 152
+keyopt,10000,5,0	!extra node include
+keyopt,10000,8,2	!hf ot average T
+
+
+!- strahlungselemente umgebung
+et,10001,152		!surf 152
+keyopt,10001,5,1	!extra node include
+keyopt,10001,9,1	!Real const formfactor
+*endif
+
+!- Solver ==============================================================
+/Solu
+!cnvtol,heat,1                      ! convergence tolerance
+kbc,1                               ! step loads
+!trnopt,full
+autos,on                            ! auto time-stepping
+!deltim,ITS,MinTS,delt,on           ! time step control
+outres,basic,all                    ! save all load step information
+parsav,all,parameter,sav            ! save parameters before multiframe restart
+*if,MY_IStep,gt,1,then
+antype,trans,rest                   ! thermal restart
+*ELSE
+antype,trans                        ! Transient
+*endif
+
+!*del,all                            !alle parameter loeschen
+parres,CHANGE,parameter,sav         ! restore parameters after multiframe restart
+nsubst,1,1,1
+
+!- Stromdefinition
+!- Bei Konstantem Array
+!Array_pos = Mytime/array_delta+Array_o ! Possition im Strom array
+!- Bei unregelmaesigem Array
+*get,StromMaxindex,PARM,Strom,DIM,1
+Zielwert=Mytime
+Istwert=-300
+StromIndexfind = 1      !Schalter fuer Beenden der Schelife
+Stromindex = 1
+
+*DOWHILE,StromIndexfind !- Start Schleife Indexsuche
+
+Istwert=Strom(Stromindex,1,1)
+
+!Zielwert gefunden
+*IF,Istwert,GT,Zielwert,THEN
+Array_pos=Stromindex
+StromIndexfind=0
+*ENDIF
+
+Stromindex=Stromindex+1
+
+!- Abbruch fuer ueberlauf
+*IF,Stromindex,GE,StromMaxindex,THEN
+StromIndexfind=0
+*ENDIF
+*ENDDO                  !- Ende Schleife Indexsuche
+
+
+
+
+!- Alles loeschen
+LSCLEAR,all
+cedele,all
+
+*if,debug,eq,1,then
+/com,'vohher Konvektion'
+etlist,600
+
+*endif
+
+!-Konvektion
+*IF,BoolKonvektion,EQ,1,THEN
+esel,s,type,,10000
+nsle
+SF,all,CONV,conv_,INITEMP           ! Übergangskoeff,Temperatur
+*ELSE
+esel,s,type,,10000
+/prep7
+edele,all
+/solu
+*ENDIF
+alls
+
+!-Stahlung
+*IF,BoolStrahlung,EQ,1,THEN
+d,extern_node,temp,INITEMP
+*ELSE
+esel,s,type,,10001
+/prep7
+edele,all
+/solu
+*ENDIF
+alls
+
+*if,MY_IStep,eq,1,then                     ! Strom
+tunif,INITEMP                       ! initial temperature
+
+*else
+*IF,Strom(Array_pos,2,1),GE,StromNull,THEN !Strom kleiner Nullbarriere
+cmsel,s,Zylinder
+
+!- BFE der HGEN ========================================================
+*Get,EL_MIN,elem,0,NUM,MIN          ! kleinste Knotennummer des Sets
+*DOWHILE,EL_MIN                     ! Do Elemente in selektion
+!esel,none $ nsel,none               
+!esel,s,,,EL_MIN                    ! Selekt element
+!nsle,s,1
+!BF,all,hgen,MyHgen(EL_MIN)         ! BFE fuerjedes element
+BFE,EL_MIN,hgen,,MyHgen(EL_MIN)     ! BFE fuerjedes element
+!cmsel,s,zylinder
+EL_MIN = elnext(EL_MIN)             ! kleinste Knotennummer des Sets
+*ENDDO                              ! Do Elemente in selektion
+
+alls
+*else                               !,Strom
+esel,none
+cmsel,s,Zylinder
+!nsel,none
+!nsle,s,1
+bfe,all,hgen,,0
+alls
+*endif                              !,Strom(Array_pos,2,1)
+*ENDIF! i
+!- Sovle
+alls
+
+
+time,MyTime                         ! Zeit auf inkrementelle Endzeit stellen
+
+!- Solve ===============================================================
+save,therm,db
+solve
+
+!- =====================================================================
+!- Temperatur Rechnung Post ============================================
+!- =====================================================================
+
+!- Select elemente ueber Temp ==========================================
+NSEL,S,TEMP,,750,10000, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_750,elem
+
+NSEL,S,TEMP,,730,750, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_730,elem
+
+NSEL,S,TEMP,,700,730, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_700,elem
+
+NSEL,S,TEMP,,670,700, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_670,elem
+
+NSEL,S,TEMP,,640,670, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_640,elem
+
+NSEL,S,TEMP,,610,640, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_610,elem
+
+NSEL,S,TEMP,,580,610, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_580,elem
+
+NSEL,S,TEMP,,550,580, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_550,elem
+
+NSEL,S,TEMP,,520,550, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_520,elem
+
+NSEL,S,TEMP,,490,520, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_490,elem
+
+NSEL,S,TEMP,,460,490, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_460,elem
+
+NSEL,S,TEMP,,430,460, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_430,elem
+
+NSEL,S,TEMP,,400,430, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_400,elem
+
+NSEL,S,TEMP,,300,400, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_300,elem
+
+NSEL,S,TEMP,,200,300, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_200,elem
+
+NSEL,S,TEMP,,100,200, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_100,elem
+
+NSEL,S,TEMP,,0.1,100, ,0
+esel,none
+esln,s,1 ! Selktiere alle elente deren Knoten voll selektiert sind
+cm,Temp_000,elem
+
+!- Erneuter loop wegen Grenzelementen ==================================
+NSEL,S,TEMP,,750,10000, ,0
+esel,none
+esln,
+cmsel,u,Temp_730
+cm,Temp_750,elem
+
+NSEL,S,TEMP,,730,750, ,0
+esel,none
+esln
+cmsel,u,Temp_700
+cm,Temp_730,elem
+
+NSEL,S,TEMP,,700,730, ,0
+esel,none
+esln
+cmsel,u,Temp_670
+cm,Temp_700,elem
+
+NSEL,S,TEMP,,670,700, ,0
+esel,none
+esln
+cmsel,u,Temp_640
+cm,Temp_670,elem
+
+NSEL,S,TEMP,,640,670, ,0
+esel,none
+esln
+cmsel,u,Temp_610
+cm,Temp_640,elem
+
+NSEL,S,TEMP,,610,640, ,0
+esel,none
+esln
+cmsel,u,Temp_580
+cm,Temp_610,elem
+
+NSEL,S,TEMP,,580,610, ,0
+esel,none
+esln
+cmsel,u,Temp_550
+cm,Temp_580,elem
+
+NSEL,S,TEMP,,550,580, ,0
+esel,none
+esln
+cmsel,u,Temp_520
+cm,Temp_550,elem
+
+NSEL,S,TEMP,,520,550, ,0
+esel,none
+esln
+cmsel,u,Temp_490
+cm,Temp_520,elem
+
+NSEL,S,TEMP,,490,520, ,0
+esel,none
+esln
+cmsel,u,Temp_460
+cm,Temp_490,elem
+
+NSEL,S,TEMP,,460,490, ,0
+esel,none
+esln
+cmsel,u,Temp_430
+cm,Temp_460,elem
+
+NSEL,S,TEMP,,430,460, ,0
+esel,none
+esln
+cmsel,u,Temp_400
+cm,Temp_430,elem
+
+NSEL,S,TEMP,,400,430, ,0
+esel,none
+esln
+cmsel,u,Temp_300
+cm,Temp_400,elem
+
+NSEL,S,TEMP,,300,400, ,0
+esel,none
+esln
+cmsel,u,Temp_200
+cm,Temp_300,elem
+
+NSEL,S,TEMP,,200,300, ,0
+esel,none
+esln
+cmsel,u,Temp_100
+cm,Temp_200,elem
+
+NSEL,S,TEMP,,100,200, ,0
+esel,none
+esln
+cmsel,u,Temp_000
+cm,Temp_100,elem
+
+! Temperaturselekt unter 100 mit Grenzelementen ========================
+esel,none
+cmsel,s,zylinder
+cmsel,u,Temp_750
+cmsel,u,Temp_730
+cmsel,u,Temp_700
+cmsel,u,Temp_670
+cmsel,u,Temp_640
+cmsel,u,Temp_610
+cmsel,u,Temp_580
+cmsel,u,Temp_550
+cmsel,u,Temp_520
+cmsel,u,Temp_490
+cmsel,u,Temp_460
+cmsel,u,Temp_430
+cmsel,u,Temp_400
+cmsel,u,Temp_300
+cmsel,u,Temp_200
+cmsel,u,Temp_100
+cm,Temp_000,elem
+
+
+
+
+!- Temperatur des Referenz holen
+/post1
+alls
+*get,NewTemp,Node,RefNode,TEMP
+/solu
+
+
+!T
+parsav,all,parameter,sav   !save parameters before multiframe restart
+FINISH
+/filnam,EMAG,0
+!/assign,esav                  ! reassign files to default
+!/assign,emat
+
+
+
+!- =====================================================================
+!- EMag Rechnung =======================================================
+!- =====================================================================
+!- Loesche alle Emag Dateien
+!/DELETE,,'ph2',
+*IF,existing_,eq,0,THEN
+    
+
+!- Element Type ========================================================
+/prep7
+!et,nummer,Type,keyopt Elektromagnetismuselemente + umstellung auf Thermal+EL-MAG
+!- Elemente und Werkstoffe zuweisen
+!- Spule
+ET,500,SOLID237,1,2                 ! tet ² EMAG
+ET,501,SOLID236,1,2                 ! hex ²/ prism² EMAG
+!cmsel,s,Spule                       ! Spule selektieren
+!esel,r,type,,2998                   ! Tetraeder ² selektieren
+!EMODIF,ALL,TYPE,500                 ! Tetraeder ² zuweisen
+!cmsel,s,Spule                       ! Spule selektieren
+!esel,r,type,,2999                   ! Hexaeder ² selektieren
+!EMODIF,ALL,TYPE,501                 ! Hexaeder ² zuweisen
+!cmsel,s,Spule                       ! Spule selektieren
+!EMODIF,ALL,MAT,CU_ETP_ID            ! Werkstoff zuweisen
+
+!- Zylinder
+ET,600,SOLID237,1,2                 ! tet ² EMAG
+!ET,600,0                 ! tet ² EMAG
+ET,601,SOLID236,1,2                 ! hex ²/ prism² EMAG
+!ET,601,0                ! hex ²/ prism² EMAG
+!cmsel,s,Zylinder                    ! Spule selektieren
+!esel,r,type,,2998                   ! Tetraeder ² selektieren
+!EMODIF,ALL,TYPE,600                 ! Tetraeder ² zuweisen
+!cmsel,s,Zylinder                    ! Spule selektieren
+!esel,r,type,,2999                   ! Hexaeder ² selektieren
+!EMODIF,ALL,TYPE,601                 ! Hexaeder ² zuweisen
+!cmsel,s,Zylinder                    ! Spule selektieren
+!EMODIF,ALL,MAT,UHC_VPN297_4_T25_ID    ! Werkstoff zuweisen
+
+!- Wasser                           ! Hier deaktiviert
+ET,700,SOLID237,0                   ! tet ² EMAG
+!ET,700,0                   ! tet ² EMAG
+ET,701,SOLID236,0                   ! hex ²/ prism² EMAG
+!ET,701,0                   ! hex ²/ prism² EMAG
+!cmsel,s,Wasser                      ! Wasser selektieren
+!esel,r,type,,2998                   ! Tetraeder ² selektieren
+!EMODIF,ALL,TYPE,700                 ! Tetraeder ² zuweisen
+!cmsel,s,Wasser                      ! Wasser selektieren
+!esel,r,type,,2999                   ! Hexaeder ² selektieren
+!EMODIF,ALL,TYPE,701                 ! Hexaeder ² zuweisen
+!cmsel,s,Wasser                      ! Wasser selektieren
+!EMODIF,ALL,MAT,VAKUUM_ID            ! Werkstoff zuweisen
+
+!- Luft                             ! Hier deaktiviert
+ET,800,SOLID237,0                   ! tet ² EMAG
+!ET,800,0                   ! tet ² EMAG
+ET,801,SOLID236,0                   ! hex ²/ prism² EMAG
+!ET,801,0                   ! hex ²/ prism² EMAG
+!cmsel,s,Luft                        ! Luft selektieren
+!esel,r,type,,2998                   ! Tetraeder ² selektieren
+!EMODIF,ALL,TYPE,800                 ! Tetraeder ² zuweisen
+!cmsel,s,Luft                        ! Luft selektieren
+!esel,r,type,,2999                   ! Hexaeder ² selektieren
+!EMODIF,ALL,TYPE,801                 ! Hexaeder ² zuweisen
+!cmsel,s,Luft                        ! Luft selektieren
+!EMODIF,ALL,MAT,VAKUUM_ID            ! Werkstoff zuweisen
+
+et,10000,0							! surf152 ausschalten
+et,10001,0							! surf152 ausschalten
+
+
+!- Alles loeschen
+LSCLEAR,all
+cedele,all
+
+
+
+!- Eingangsstrom
+cmsel,s,Spule                       ! Nur Spuelnknoten
+nsle
+cmsel,r,I_EIN                       ! Set selektieren
+cmplot
+*Get,I_EIN_MIN,Node,0,NUM,MIN       ! kleinste Knotennummer des Sets
+*Get,I_EIN_MAX,Node,0,NUM,MAX       ! groesste Knotennummer des Sets
+*Get,I_EIN_ANZ,Node,0,COUNT         ! Anzahl der Knoten
+! Schleife fuer CE als Stromdichte
+MyNode = ndnext(I_EIN_MIN)
+*DOWHILE,MyNode
+CE,NEXT,0.,I_EIN_MIN,volt,-1.,MyNode,volt,1.
+MyNode = ndnext(MyNode)
+*ENDDO
+
+alls
+cmsel,ALL
+cmplo
+
+FINISH
+*ELSEIF,existing_,eq,1              !existing
+resume,EMAG,db
+parres,CHANGE,parameter,sav         ! restore parameters after multiframe restart
+*ENDIF                              !Existing
+
+
+!- Solver ==============================================================
+/Solu
+antype,tran                         ! Transiente Analyse
+KBC,0                               ! Transiente Lasten
+Trnopt,full                         ! Zeit transient vollintegriert
+outres,basic,all                    ! save all load step information
+autots,on                           ! Keine automatische Zeitschrittweite
+nsubst,Aufloesung,Aufloesung,Aufloesung                        ! Fix 5 schritte
+!deltim,1/FREQUENZ/2/Aufloesung,1/FREQUENZ/2/Aufloesung,1/FREQUENZ/2/Aufloesung,on
+Time,1/FREQUENZ/2                   ! Endzeit = halber sinus
+TINTP,,,,1                          ! Defines transient integration parameters.
+alls
+
+!- Strom holen
+/inp,'001_INPUT/Strom_Alu_2','inp'
+NewI = Strom(Array_pos,2,1)*I_DOE_F
+myDIFF=abs(OldI-NewI)
+
+*if,debug,eq,1,then
+/com,'DEBUG Comment'
+/com,'Parameter NewI'
+*endif
+
+!- Wenn NewTemp >= OldTemp+StepTemp dann wird Emag gestartet
+!- Wenn myDIFF >= StromStep dann wird Emag gestartet
+*IF,NewTemp,GE,StepTemp+OldTemp,OR,myDIFF,GE,StepStrom,THEN
+
+
+!Werkstoffe mittel Temperatur zuweisen
+/prep7
+esel,none
+cmsel,s,temp_000
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_100
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_200
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_300
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_400
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_430
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_460
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_490
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_520
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_550
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_580
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_610
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_640
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_670
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_700
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_730
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+esel,none
+cmsel,s,temp_750
+EMODIF,ALL,MAT,AlMg5_ID    ! Werkstoff zuweisen
+
+
+!*del,all                            !alle parameter loeschen
+parres,CHANGE,parameter,sav      !restore parameters after multiframe restart
+/solu
+alls
+
+
+!- Lasten ==============================================================
+!- Spule
+EL_Input=NewI
+!- NL Tabelle ueber 50 Punkte ==========================================
+Halbsinuszeit = 1/FREQUENZ/2
+PI=ACOS(-1)
+*DIM,I_EIN_Tabelle,TABLE,6,1,1,TIME,
+*DO,I_Index,0,5,1
+    SinusZeit=Halbsinuszeit/5*I_Index ! Zeit
+    I_EIN_Tabelle(I_Index+1,0,1) = SinusZeit ! Zeit
+    I_EIN_Tabelle(I_Index+1,1,1) = EL_Input*Sin(PI/Halbsinuszeit*SinusZeit) ! Strom
+*ENDDO
+
+F,I_EIN_MIN,amps,%I_EIN_Tabelle%    !Eingangsstrom, Phase = 0
+
+!- Ausgangspotential ===================================================
+cmsel,s,I_AUS                       ! Set selektieren
+cmsel,r,spule
+d,all,volt,0.                       ! Potential setzen
+
+!- Zylinder, 1 Knoten mit Potential 0 ==================================
+cmsel,s,Zylinder
+nsel,none
+nsle
+*Get,Zylinder_min,Node,0,NUM,MIN    ! kleinste Knotennummer des Sets
+MyNode = ndnext(Zylinder_min)
+d,%MyNode%,volt,0.                  ! Potential setzen, stabilisierung
+alls
+
+!- Luft AZ = 0
+alls
+nsel,none
+nsel,s,ext
+d,all,az,0
+
+!- Lasten importieren ==================================================
+cmsel,s,zylinder
+ldread,temp,last,,,,Therm,rth           ! read thermal analysis temperatures
+alls
+
+!- Solve ===============================================================
+save,emag,db
+!cdwrite,all,%MyTime%,cdb
+existing_=1
+Time_Emag_=Time_Emag_+TINC
+solve
+
+
+!- =====================================================================
+!- EMAG Rechnung Post ==================================================
+!- =====================================================================
+
+/post1
+
+! Nur zylinder selektieren
+esel,none
+nsel,none
+
+cmsel,s,zylinder
+nsle,1
+
+! Lastfall lesen
+set,last
+*get,No_of_LCs,ACTIVE,0,set,SBST    ! Schleife definieren
+Etable,,jheat,,max                  ! Tabel vorbereiten 0
+*VGET,MyHgen,elem,,ETABLE,JHEA      ! Tabel vorbereiten 1
+*VOPER,MyHgen,0,MULT,MyHgen         ! Tabel vorbereiten 2
+
+*DO,MySubst,1,No_of_LCs,1           ! Schleife *VGET
+set,1,MySubst                       ! Lade Step,substep
+Etable,,jheat,,max                  ! Lade Etable
+*VGET,MyHgenTemp,elem,,ETABLE,JHEA  ! Lese Table
+*VOPER,MyHgen,MyHgen,ADD,MyHgenTemp ! Tabel addieren
+*ENDDO                              ! Schleife *VGET
+
+
+*VOPER,MyHgen,MyHgen,DIV,No_of_LCs  ! Tabel Mittelwert
+*VSCFUN,mymax,max,MyHgen            ! Maximalwert
+parsav,all,parameter,sav            !save parameters before multiframe restart
+
+FINISH
+
+!- OldTemp neu setzen
+OldTemp=NewTemp
+!- OldI neu setzen
+OldI=NewI
+
+!- Statusfile ==========================================================
+EMAG_status=1 
+T_Diff=abs(OldTemp-NewTemp)
+!- Kopfzeile
+*CFOPEN,%Dateiname%,sta,,APPEND
+*vwrite,MY_IStep,MyTime,NewTemp,T_Diff,NewI,myDIFF,EMAG_status
+(F20.0,'|',5(F20.2,'|'),F20.0)
+*CFCLOSE
+
+
+!- Sprung Emag wird uebersprungen
+*ELSE
+!- Statusfile ==========================================================
+EMAG_status=0 
+T_Diff=abs(OldTemp-NewTemp)
+!- Kopfzeile
+*CFOPEN,%Dateiname%,sta,,APPEND
+*vwrite,MY_IStep,MyTime,NewTemp,T_Diff,NewI,myDIFF,EMAG_status
+(F20.0,'|',5(F20.2,'|'),F20.0)
+*CFCLOSE
+
+
+!- Ende des EMag Sprungs
+*ENDIF
+
+
+
+FINISH
+
+!- =====================================================================
+!- Ende Loop ================================= ! solution *do loop =====
+!- =====================================================================
+*ENDDO

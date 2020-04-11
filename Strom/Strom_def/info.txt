@@ -1,0 +1,23 @@
+Hallo Christian,
+
+mit der Excel kannst du ganz einfach ein Array erstellen und mit strg C + V in eine TXT- Datei einfügen.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!Achtung Punkt und Komma!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+in EMag_Trans-Alu.mac wird in Zeile 99 das Array eingefügt.
+
+Zeile 344 und 345 Sind die Parameter mit denen das Array verschoben wird.
+
+Zeile 463 bis 490 holen den Index für den passenenden Stromwert
+
+Zeile 532 ist ein Prüfen des Strom wertes.
+Zeile 911 ebenfalls
+
+
+aber ich habe irgendwie das gefühl, dass das Verschieben des Arrays nicht ganz funktioniert.
+Kannst du das bitte Prüfen?
+
+
+
+
