@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Convert HEIC2JPEG
 # R.Fichtenau
 # 27.05.2020
@@ -10,8 +11,12 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 import os
+import subprocess
+from subprocess import *
 
-
+# Variablen
+myDir = ""
+myBilder = []
 
 # Window def
 window = tkinter.Tk()
@@ -21,17 +26,30 @@ window.geometry('430x200')
 
 # Funktionen
 def clickedPath():
+    global myDir
     root = tkinter.Tk()
     root.withdraw()
     dirname = filedialog.askdirectory(parent=root, initialdir="/home", title="Verzeichnis auswählen")
+    myDir = dirname
     tbPfad.delete( 1.0,END)
     tbPfad.insert( END,dirname)
     Anzahl(dirname)
 
+
 def Conversion():
-    messagebox.showinfo('Message title', 'Message content')
+    global myDir
+    Anzahl(myDir)
+    global myBilder
+    cmd = "cd " + myDir + "; for file in *.heic; do heif-convert $file ${file/%.heic/.jpg}; done"
+    for myBild in myBilder:
+        myNewBild = myBild[0:-4] + "jpg"
+        cmd = "cd " + myDir + " && heif-convert '" + myBild + "' '" + myNewBild + "'"
+        p = subprocess.Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,
+            close_fds=False)
+        #messagebox.showinfo('Message title', cmd)
 
 def Anzahl(mypdir):
+    global myBilder
     print(mypdir)
     if os.path.isdir(mypdir):
         Counter = 0
@@ -40,8 +58,10 @@ def Anzahl(mypdir):
             [Dummy, Ext] = os.path.splitext(File)
             if Ext == ".heic":
                 Counter += 1
+                myBilder.append(File)
             elif Ext == ".HEIC":
                 Counter += 1
+                myBilder.append(File)
         lblANZ.configure(text= str(Counter) + " Bilder")
 
 def quit():
@@ -50,7 +70,7 @@ def quit():
 
 # Button Verzeichnis
 btnPfad = tkinter.Button(window,text='Verzeichnis auswählen', command=clickedPath)
-btnPfad.grid(column=0,row=0)
+btnPfad.grid( columnspan=2,row=0)
 
 
 
@@ -75,7 +95,9 @@ lbldummy1.grid(column=0, row=4)
 lbldummy2 = tkinter.Label(window, text="")
 lbldummy2.grid(column=0, row=5)
 btnQuit = tkinter.Button(window,text='Beenden', command=quit)
-btnQuit.grid(column=1,row=6)
+btnQuit.grid( columnspan=2,row=6)
+lbldummy2 = tkinter.Label(window, text="In Herbrechtingen ist es immer am schönsten!!!")
+lbldummy2.grid( columnspan=2, row=7)
 
 
 # Wiederholung
