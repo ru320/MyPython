@@ -1,0 +1,40 @@
+Schleife: 0Schleife: 1Schleife: 2Schleife: 0Schleife: 0Current Time = 21:51:17Schleife: 1Current Time = 21:51:18Schleife: 2Current Time = 21:51:19Schleife: 3Current Time = 21:51:20Schleife: 4Current Time = 21:51:21Schleife: 5Current Time = 21:51:22Schleife: 6Current Time = 21:51:23Schleife: 7Current Time = 21:51:24Schleife: 8Current Time = 21:51:25Schleife: 9Current Time = 21:51:26Schleife: 10Current Time = 21:51:27Schleife: 11Current Time = 21:51:28Schleife: 12Current Time = 21:51:29Schleife: 13Current Time = 21:51:30Schleife: 14Current Time = 21:51:31Schleife: 15Current Time = 21:51:32Schleife: 16Current Time = 21:51:33Schleife: 17Current Time = 21:51:34Schleife: 18Current Time = 21:51:35Schleife: 19Current Time = 21:51:36Schleife: 0
+Current Time = 21:52:57
+Schleife: 1
+Current Time = 21:52:58
+Schleife: 2
+Current Time = 21:52:59
+Schleife: 3
+Current Time = 21:53:00
+Schleife: 4
+Current Time = 21:53:01
+Schleife: 5
+Current Time = 21:53:02
+Schleife: 6
+Current Time = 21:53:03
+Schleife: 7
+Current Time = 21:53:04
+Schleife: 8
+Current Time = 21:53:05
+Schleife: 9
+Current Time = 21:53:06
+Schleife: 10
+Current Time = 21:53:07
+Schleife: 11
+Current Time = 21:53:08
+Schleife: 12
+Current Time = 21:53:09
+Schleife: 13
+Current Time = 21:53:10
+Schleife: 14
+Current Time = 21:53:11
+Schleife: 15
+Current Time = 21:53:12
+Schleife: 16
+Current Time = 21:53:13
+Schleife: 17
+Current Time = 21:53:14
+Schleife: 18
+Current Time = 21:53:15
+Schleife: 19
+Current Time = 21:53:16

@@ -9,16 +9,17 @@
 # Telefon       ==> Phone           ==> P
 # ///////////////////////////////////////
 # Adressen und Werte des CAN- Befehls sind in der If Abfrage
+# Sudo Kommando
 # ///////////////////////////////////////
 
 # - Imports
 import serial
-from pynput.keyboard import Key, Controller
+import keyboard
 import time
 
 # - Variablen
-keyboard = Controller() 
 VerbindungsBool = False
+ser = serial.Serial('/dev/ttyUSB0',9600) # Achtung: Adresse muss am Pi passen
 
 
 # - Endlosschleife
@@ -26,7 +27,7 @@ while True:
     # - Setup Serial
     try:
         # - Setze Verbindung
-        ser = serial.Serial('/dev/ttyUSB0',9600) # Achtung: Adresse muss am Pi passen
+        # ser = serial.Serial('/dev/ttyUSB0',9600) # Achtung: Adresse muss am Pi passen
         VerbindungsBool = True
     except :
         # - Schlafe 3 Sekunden wenn keine verbindung
@@ -34,6 +35,7 @@ while True:
     # - Check ob Serial
     if VerbindungsBool:
         print("Verbindung da")
+        print("Pfeil Hoch")
         # Serial lesen
         line = ser.readline().decode('utf-8').rstrip()
         # Fallunterscheidungen
@@ -41,6 +43,7 @@ while True:
         if "Pfeil Hoch" == str(line):
             keyboard.press('N')
             keyboard.release('N')
+            print("Pfeil Hoch")
         # Pfeil Runter  ==> Previous track  ==> V
         if "Pfeil Runter" == str(line):
             keyboard.press('V')
