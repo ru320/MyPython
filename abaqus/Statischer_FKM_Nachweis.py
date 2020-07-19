@@ -142,6 +142,21 @@ for myFrame in myFrames:
     except:
         print('Frame existiert bereits')
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #myNewField
+    print('Feld erstellen')
+    try:
+        E_Field_ZD = sessionFrame.FieldOutput(name='ZD Werte',description='Rü ist ein Gott', type=SCALAR)
+    except:
+        print('Field existiert bereits')
+    try:
+        EFieldZ = sessionFrame.FieldOutput(name='Zähler',description='Rü ist ein Gott', type=SCALAR)
+    except:
+        print('Field existiert bereits')
+    try:
+        EFieldN = sessionFrame.FieldOutput(name='Nenner',description='Rü ist ein Gott', type=SCALAR)
+    except:
+        print('Field existiert bereits')
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Ergebnisse holen
     myS1 = session.odbs[dispOdb].steps[myCurrentStep].frames[myFrameID].fieldOutputs['S'].getScalarField(invariant=MAX_PRINCIPAL)
     myS2 = session.odbs[dispOdb].steps[myCurrentStep].frames[myFrameID].fieldOutputs['S'].getScalarField(invariant=MID_PRINCIPAL)
@@ -160,8 +175,12 @@ for myFrame in myFrames:
         myODBInstance = myODB.rootAssembly.instances[myInstance]
         for mySection in mySections:
             mySubSetSection = mySection.sectionName
-            ###
-            ###
+            #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # Check ob Section einen Normalen Werkstoff als Grundlage hat
+            ### Kein Massepunkt
+            ### Keine Traegheit
+            ### Kein Rigid?
+            ### Kein Gummi
             # Hier muss ein Skip rein
             mySubSetMat = myODB.sections[mySubSetSection].material
             print(mySubSetMat)
@@ -171,20 +190,7 @@ for myFrame in myFrames:
             mySubS3= myS3.getSubset(region=mySubSet)
             myElements = mySubSet.elements
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            #myNewField
-            print('Feld erstellen')
-            try:
-                EField = sessionFrame.FieldOutput(name='ZD Werte',description='Rü ist ein Gott', type=SCALAR)
-            except:
-                print('Frame existiert bereits')
-            try:
-                EFieldZ = sessionFrame.FieldOutput(name='Zähler',description='Rü ist ein Gott', type=SCALAR)
-            except:
-                print('Frame existiert bereits')
-            try:
-                EFieldN = sessionFrame.FieldOutput(name='Nenner',description='Rü ist ein Gott', type=SCALAR)
-            except:
-                print('Frame existiert bereits')
+            #Liste der Werte
             myElementList = []
             myZDValues = []
             myNennerList = []
@@ -202,8 +208,8 @@ for myFrame in myFrames:
                 else:
                     myZD = max(-1.0 , myZaehler / myNenner)
                 myZDValues.append((myZD,))
-                myNennerList.append((myNenner,))
-                myZaehlerList.append((myZaehler,))
+                #myNennerList.append((myNenner,))
+                #myZaehlerList.append((myZaehler,))
             #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             #Ergebnis schreiben
             print('Ergebnis schreiben')
@@ -211,8 +217,8 @@ for myFrame in myFrames:
             myZDValuesTuple = tuple(myZDValues)
             myNennerTuple = tuple(myNennerList)
             myZahelerTuple = tuple(myZaehlerList)
-            EField.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myZDValuesTuple)
-            EFieldZ.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myZahelerTuple)
-            EFieldN.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myNennerTuple)
-            
+            E_Field_ZD.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myZDValuesTuple)
+            #EFieldZ.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myZahelerTuple)
+            #EFieldN.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myNennerTuple)
+
 
