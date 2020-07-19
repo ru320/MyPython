@@ -214,4 +214,5 @@ for myFrame in myFrames:
             EField.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myZDValuesTuple)
             EFieldZ.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myZahelerTuple)
             EFieldN.addData(position=INTEGRATION_POINT, instance=myODBInstance,labels=myElementListTuple, data=myNennerTuple)
+            
 
