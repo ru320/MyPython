@@ -1,4 +1,3 @@
-
 import random
 import string
 import os
@@ -15,15 +14,25 @@ mysourcelen = len(source)
 
 offset = random.choice(dezisource)
 shift = random.choice(dezisource)
-position = 0
+textposition = 0
+EndBool = False
 
-myText = 'Ich bin ein Gott'
+
+
+myText = 'Ich bin ein Gott, du leider nicht'
 laenge = len(myText)
 
 
 with open('somefile.txt', 'w') as the_file:
     for i in range(256):
         randstr = ""
+        Zeilenpos = textposition * int(shift)**2
+        while True:
+            if Zeilenpos > 255:
+                Zeilenpos = Zeilenpos - 256
+                # print(Zeilenpos)
+            else:
+                break
         for j in range(256):
             # Zusatz
             if i == 2 and j == 2:
@@ -32,24 +41,24 @@ with open('somefile.txt', 'w') as the_file:
             elif i == 5 and j == int(offset) * int(offset):
                 # Shift
                 randstr += random.choice(shift)
-            elif i >= 10 and i == j:
-                if position < laenge:
-                    myChar = myText[position].upper()
+            elif i >= 10 and j == Zeilenpos:
+                if textposition < laenge:
+                    myChar = myText[textposition].upper()
                     myCharPos = source.find(myChar)
-                    myNewPos = int(myCharPos) + int(offset) + int(position) * int(shift)
+                    myNewPos = int(myCharPos) + int(offset) + int(textposition) * int(shift)
                     while True:
                         if myNewPos >= mysourcelen:
                             myNewPos = myNewPos - mysourcelen
                         else:
                             break
                     myNewChar = source[myNewPos]
-                    print(myChar + ' | ' + str(myCharPos) + ' | ' + str(myNewPos) + ' | ' + str(myNewChar))
-                    position += 1
+                    # print(myChar + ' | ' + str(myCharPos) + ' | ' + str(myNewPos) + ' | ' + str(myNewChar))
+                    textposition += 1
                     randstr += myNewChar
+                elif textposition >= laenge and EndBool == False:
+                    randstr += '|'
+                    EndBool = True
             else:
-                # randstr += random.choice(source)
-                randstr += "-"
+                randstr += random.choice(source)
+                # randstr += "-"
         the_file.write(randstr + '\n')
-
-
-
