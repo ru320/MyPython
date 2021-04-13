@@ -19,7 +19,7 @@ EndBool = False
 
 
 
-myText = 'Ich bin ein Gott, du leider nicht'
+myText = 'AA'
 laenge = len(myText)
 
 
@@ -59,6 +59,6 @@ with open('somefile.txt', 'w') as the_file:
                     randstr += '|'
                     EndBool = True
             else:
-                randstr += random.choice(source)
-                # randstr += "-"
+                # randstr += random.choice(source)
+                randstr += "-"
         the_file.write(randstr + '\n')
