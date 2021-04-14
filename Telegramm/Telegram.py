@@ -35,6 +35,6 @@ def SendMultTelegram(Message):
         params = {"chat_id":ID, "text":Message}
         url = f"https://api.telegram.org/bot{Token}/sendMessage"
         message = requests.post(url, params=params)
-        return(message)
+    return(message)
 
 
