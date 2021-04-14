@@ -22,4 +22,4 @@ for inzidenz in inzidenzen['features']:
     nachricht += f'{inz}\t {landkreis}\n'
 
 ############# NAchricht Senden
-print(TG.SendTelegram(nachricht))
+print(TG.SendMultTelegram(nachricht))

@@ -37,4 +37,5 @@ def SendMultTelegram(Message):
         message = requests.post(url, params=params)
         return(message)
 
-
+SendMultTelegram('Test')
+SendTelegram('Test2','RF')
