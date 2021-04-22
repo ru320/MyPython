@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-import Telegramm
+import Telegram
 import os.path
 from pynotifier import Notification
 
@@ -23,8 +23,8 @@ def myNotify(myTitle,myMessage):
     ).send()
 
 
-Telegramm.SendMultTelegram("Start " + myFile2Tail)
-Telegramm.SendMultTelegram(datetime.now())
+Telegram.SendMultTelegram("Start " + myFile2Tail)
+Telegram.SendMultTelegram(datetime.now())
 myNotify("Start " + myFile2Tail, str(datetime.now()))
 time.sleep(DurationTime)
 
@@ -35,19 +35,19 @@ while myRunBool:
                 myOutputline = line.strip()
                 if "THE ANALYSIS HAS COMPLETED SUCCESSFULLY" in myOutputline:
                     myRunBool = False
-                    Telegramm.SendMultTelegram(myFile2Tail + " ist fertig")
-                    Telegramm.SendMultTelegram(datetime.now())
+                    Telegram.SendMultTelegram(myFile2Tail + " ist fertig")
+                    Telegram.SendMultTelegram(datetime.now())
                     myNotify(myFile2Tail + " ist fertig", str(datetime.now()))
                     Exit  =True
                 if "THE ANALYSIS HAS NOT BEEN COMPLETED" in myOutputline or "***ERROR: Process terminated by" in myOutputline:
                     myRunBool = False
-                    Telegramm.SendMultTelegram(myFile2Tail + " hat abgebrochen")
-                    Telegramm.SendMultTelegram(datetime.now())
+                    Telegram.SendMultTelegram(myFile2Tail + " hat abgebrochen")
+                    Telegram.SendMultTelegram(datetime.now())
                     myNotify(myFile2Tail + " hat abgebrochen", str(datetime.now()))
                     Exit  =True
             if myOutputline != myMessage:
                 myMessage = myOutputline
-                Telegramm.SendMultTelegram(myOutputline)
+                Telegram.SendMultTelegram(myOutputline)
                 myNotify(myFile2Tail , myOutputline)
             if Exit:
                 break
@@ -55,5 +55,5 @@ while myRunBool:
     else:
             time.sleep(SleepTime)
 
-Telegramm.SendMultTelegram("Programm Beendet " + myFile2Tail)
+Telegram.SendMultTelegram("Programm Beendet " + myFile2Tail)
 myNotify("Programm beendet " + myFile2Tail, str(datetime.now()))
