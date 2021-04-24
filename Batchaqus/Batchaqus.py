@@ -15,6 +15,7 @@ from pynotifier import Notification
 
 
 ################### Variablen
+DurationTime = 10
 
 
 ################### Defs
