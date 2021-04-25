@@ -7,6 +7,7 @@
 
 
 ################### IMPORTS
+import tkinter.filedialog
 import tkinter as tk
 from datetime import datetime
 import time
@@ -18,7 +19,9 @@ from pynotifier import Notification
 DurationTime = 10
 
 
+
 ################### Defs
+#- Notification
 def myNotify(myTitle,myMessage):
     if sys.platform == 'linux':
         Notification(
@@ -37,10 +40,40 @@ def myNotify(myTitle,myMessage):
             urgency='normal',
         ).send()
 
+#- Close GUI
+def Close():
+    root.destroy()
+
+#- Choose Folder GUI
+def ChooseFLD():
+    print('Choose Folder')
+    WorkingDir = tk.filedialog.askdirectory()
+    VZ_TB_Variable.set(WorkingDir)
 
 ################### main Form
 root = tk.Tk()
-canvas  = tk.Canvas(root,width = 600,height = 300)
-canvas.grid(columnspan = 4)
+canvas  = tk.Canvas(root,width = 700,height = 300,bg='black')
+canvas.grid(columnspan=5, rowspan=10)
+
+
+#- Button Beenden
+Beenden_btn = tk.Button(root, text='Close', command=lambda:Close(), font='AvenirNextCondensed',bg='black',fg='white')
+Beenden_btn.grid(column=0,row=0)
+
+#- Button Verzeichnis waehlen
+VZ_btn = tk.Button(root, text='Choose Folder', command=lambda:ChooseFLD(), font='AvenirNextCondensed',bg='black',fg='white')
+VZ_btn.grid(column=1,row=0)
+
+#- TextBox Verzeichnis
+VZ_TB_Variable = tk.StringVar()
+VZ_TB = tk.Entry(root,textvariable=VZ_TB_Variable,font='AvenirNextCondensed',bg='black',fg='white')
+VZ_TB.grid(column=0,row=1,columnspan=5,sticky = tk.W+tk.E)
+
+#- TextBox Command
+CMD_TB_Variable = tk.StringVar()
+CMD_TB = tk.Entry(root,textvariable=CMD_TB_Variable,font='AvenirNextCondensed',bg='black',fg='white')
+CMD_TB.grid(column=0,row=2,columnspan=5,sticky = tk.W+tk.E)
+
 
 root.mainloop()
+
