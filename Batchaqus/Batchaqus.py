@@ -18,11 +18,12 @@ import sys
 
 
 ################### Variablen
+Verion = '1.0'
 DurationTime = 10
 nCPUList = []
 for i in range(os.cpu_count()):
     nCPUList.append(i+1)
-
+VersionsList = ['abq2021','abq2020']
 
 
 ################### Defs
@@ -55,6 +56,11 @@ def ChooseFLD():
     WorkingDir = tk.filedialog.askdirectory()
     VZ_TB_Variable.set(WorkingDir)
 
+#- Callback update Stringvars
+def callback():
+    print(nCPUs.get())
+    return True
+
 #- RunCAE
 def RunCAE():
     print('Run CAE')
@@ -79,6 +85,7 @@ def Resume():
 
 ################### main Form
 root = tk.Tk()
+root.title('Batchaqus ' + Verion)
 canvas  = tk.Canvas(root,width = 600,height = 300,bg='black')
 canvas.grid(columnspan=5, rowspan=10)
 
@@ -99,10 +106,17 @@ CPU_Lbl.grid(column=0,row=1)
 
 #- Combobox CPUs
 nCPUs = tk.IntVar()
-CPU_CBX = tk.ttk.Combobox(root,text='CPUs', font='AvenirNextCondensed',width = 16,textvariable = nCPUs,state='readonly')
+CPU_CBX = tk.ttk.Combobox(root,text='CPUs', font='AvenirNextCondensed',width = 16,textvariable = nCPUs,state='readonly',validatecommand=callback)
 CPU_CBX['values'] = nCPUList
 CPU_CBX.grid(column=1,row=1)
 CPU_CBX.set(os.cpu_count())
+
+#- Combobox Versions
+Versions = tk.IntVar()
+Vers_CBX = tk.ttk.Combobox(root,text='CPUs', font='AvenirNextCondensed',width = 16,textvariable = Versions,state='readonly')
+Vers_CBX['values'] = VersionsList
+Vers_CBX.grid(column=1,row=2)
+Vers_CBX.set(VersionsList[-1])
 
 #- Lable Version
 Version_Lbl = tk.Label(root,text='Version', font='AvenirNextCondensed',bg='black',fg='white',image=pixelVirtual,compound="c",width = 115)
