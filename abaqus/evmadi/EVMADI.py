@@ -16,6 +16,7 @@ import os.path
 import sys
 import base64
 from io import BytesIO
+from typing import Text
 
 
 ################### Variablen
@@ -28,10 +29,23 @@ image_result.write(image_64_decode)
 #- FunktionsVariablen
 myFile = ''
 View_row = 1
+Result_row = 1
 
 #- Gui Variables
 BTN_Dict = {}
+Result_Title = ['Name', 'Step', 'Time', 'Result', 'Resulttype', 'View', 'Legend Min' , 'Legend Max' ,'Legend']
+Result_Dict  = {}
 
+#- Dummy Dict
+def dummy_Dict():
+    global Result_Title
+    global Result_Dict
+    global Result_row
+    Local_Dict = {}
+    for myItem in Result_Title:
+        Local_Dict[myItem ] = myItem
+    Result_Dict[str(Result_row)] = Local_Dict
+dummy_Dict()
 
 #- Close GUI
 def Close():
@@ -46,11 +60,12 @@ def ChooseFILE():
 
 #- Load Settings
 def LoadSettings():
-    global View_row
-    View_row = 0
+    global Result_row
+    global Result_Dict
+    Result_row = 1
     print('Load ' + myFile)
-    for i in range(20):
-        AddRow()
+    for myDict in Result_Dict:
+        AddRow(Result_Dict[myDict])
 
 #- Save Settings
 def Save():
@@ -64,10 +79,67 @@ def RemoveRow(FrameName,Local_row,Local_col):
     btn.destroy()
 
 #- Add View Row
-def AddRow():
-    global View_row
-    print(View_row)
-    View_row += 1
+def AddRow(Local_Dict):#Name, Step, Time, Rsult, Resulttype, View, Legend_Min , Legend_Max ,Legend):
+    global Result_row
+    global Result_Dict
+    myCol = 0
+    #- Name
+    Name = Local_Dict['Name']
+    TXT_Name = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Name.insert(tk.END,Name)
+    TXT_Name.grid(column=myCol,row=Result_row)
+    myCol +=1
+    #- Step
+    Step = Local_Dict['Step']
+    TXT_Step = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Step.insert(tk.END,Step)
+    TXT_Step.grid(column=myCol,row=Result_row)
+    myCol +=1
+    #- Time
+    Time = Local_Dict['Time']
+    TXT_Time = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Time.insert(tk.END,Time)
+    TXT_Time.grid(column=myCol,row=Result_row)
+    myCol +=1
+    #- Result
+    Result = Local_Dict['Result']
+    TXT_Result = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Result.insert(tk.END,Result)
+    TXT_Result.grid(column=myCol,row=Result_row)
+    myCol +=1
+    #- Resulttype
+    Resulttype = Local_Dict['Resulttype']
+    TXT_Resulttype = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Resulttype.insert(tk.END,Resulttype)
+    TXT_Resulttype.grid(column=myCol,row=Result_row)
+    myCol +=1
+    #- Vieworientation
+    View = Local_Dict['View']
+    TXT_View = tk.Text(Results_Frame,width=10,height=1)
+    TXT_View.insert(tk.END,View)
+    TXT_View.grid(column=myCol,row=Result_row)
+    myCol +=1
+    #- Legende Min
+    Legende_Min = Local_Dict['Legend Min']
+    TXT_Legende_Min = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Legende_Min.insert(tk.END,Legende_Min)
+    TXT_Legende_Min.grid(column=myCol,row=Result_row)
+    myCol +=1
+    #- Legende Max
+    Legende_Max = Local_Dict['Legend Max']
+    TXT_Legende_Max = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Legende_Max.insert(tk.END,Legende_Max)
+    TXT_Legende_Max.grid(column=myCol,row=Result_row)
+    myCol +=1
+    #- Legende
+    Legende = Local_Dict['Legend']
+    TXT_Legende = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Legende.insert(tk.END,Legende)
+    TXT_Legende.grid(column=myCol,row=Result_row)
+    myCol +=1
+
+    print('Result row' + str(Result_row))
+    Result_row += 1
 
 #- Add BTN
 def AddBTN(Frame,FrameName,Local_row,Local_col):
@@ -99,16 +171,17 @@ Logo_Label.grid(column=1,row=0)
 
 #- Results Headder Grid
 Results_Headder_Frame = tk.Frame(root, bg='#f89c0e', width=450, height=50, pady=3)
-Results_Headder_Frame.grid(column=0,row=1)
+Results_Headder_Frame.grid(column=0,row=1) 
 Results_Label = tk.Label(Results_Headder_Frame, text= 'Saved Results') 
 Results_Label.grid(column=0,row=0) 
 
 #- Results Grid
-Results_Frame = tk.Frame(root, bg='grey', width=450, height=50, pady=3)
+Results_Frame = tk.Frame(root, width=450, height=50, pady=3)
 Results_Frame.grid(column=0,row=2)
-for i, j in zip(range(5), range(10)):
-    btn =  tk.Button(Results_Frame, text='Close', command=lambda:Close(), font='AvenirNextCondensed',bg='black',fg='white',image=pixelVirtual,compound="c")
-    btn.grid(column=i,row=j)
+for i,myTitle in enumerate(Result_Title):
+    Results_Titel_Label = tk.Label(Results_Frame, text= myTitle) 
+    Results_Titel_Label.grid(column=i,row=0) 
+
 
 #- View Headder Grid
 View_Headder_Frame = tk.Frame(root, bg='#f89c0e', width=450, height=50, pady=3)
