@@ -122,36 +122,36 @@ def AddRow(Local_Dict):#Name, Step, Frame, Rsult, Resulttype, View, Legend_Min ,
     global Result_Dict
     myCol = 0
     #- Load
-    BTN_Load = tk.Button(Results_Frame, text='Load', command=lambda:Load(Local_Dict['ID']), font='AvenirNextCondensed',image=pixelVirtual,compound="c",width = 10,height=8)
+    BTN_Load = tk.Button(Results_Frame, text='Load', command=lambda:Load(Local_Dict['ID']), font='Verdana',image=pixelVirtual,compound="c",height=8)
     BTN_Load.grid(column=myCol,row=Result_row)
     myCol +=1
     #- Name
     Name = Local_Dict['Name']
-    TXT_Name = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Name = tk.Text(Results_Frame,width=10,height=1,font='Verdana')
     TXT_Name.insert(tk.END,Name)
     TXT_Name.grid(column=myCol,row=Result_row)
     myCol +=1
     #- Step
     Step = Local_Dict['Step']
-    TXT_Step = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Step = tk.Text(Results_Frame,width=10,height=1,font='Verdana')
     TXT_Step.insert(tk.END,Step)
     TXT_Step.grid(column=myCol,row=Result_row)
     myCol +=1
     #- Frame
     Frame = Local_Dict['Frame']
-    TXT_Frame = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Frame = tk.Text(Results_Frame,width=10,height=1,font='Verdana')
     TXT_Frame.insert(tk.END,Frame)
     TXT_Frame.grid(column=myCol,row=Result_row)
     myCol +=1
     #- Result
     Result = Local_Dict['Result']
-    TXT_Result = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Result = tk.Text(Results_Frame,width=10,height=1,font='Verdana')
     TXT_Result.insert(tk.END,Result)
     TXT_Result.grid(column=myCol,row=Result_row)
     myCol +=1
     #- Resulttype
     Resulttype = Local_Dict['Resulttype']
-    CMB_Resulttype = ttk.Combobox(Results_Frame,width=10,height=20,values=["Contour","Symbols"])
+    CMB_Resulttype = ttk.Combobox(Results_Frame,width=10,height=20,values=["Contour","Symbols"],font='Verdana')
     CMB_Resulttype.grid(column=myCol,row=Result_row)
     if Resulttype == "Symbols":
         CMB_Resulttype.current(1)
@@ -160,25 +160,25 @@ def AddRow(Local_Dict):#Name, Step, Frame, Rsult, Resulttype, View, Legend_Min ,
     myCol +=1
     #- Vieworientation
     View = Local_Dict['View']
-    TXT_View = tk.Text(Results_Frame,width=10,height=1)
+    TXT_View = tk.Text(Results_Frame,width=10,height=1,font='Verdana')
     TXT_View.insert(tk.END,View)
     TXT_View.grid(column=myCol,row=Result_row)
     myCol +=1
     #- Legende Min
     Legende_Min = Local_Dict['Legend Min']
-    TXT_Legende_Min = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Legende_Min = tk.Text(Results_Frame,width=10,height=1,font='Verdana')
     TXT_Legende_Min.insert(tk.END,Legende_Min)
     TXT_Legende_Min.grid(column=myCol,row=Result_row)
     myCol +=1
     #- Legende Max
     Legende_Max = Local_Dict['Legend Max']
-    TXT_Legende_Max = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Legende_Max = tk.Text(Results_Frame,width=10,height=1,font='Verdana')
     TXT_Legende_Max.insert(tk.END,Legende_Max)
     TXT_Legende_Max.grid(column=myCol,row=Result_row)
     myCol +=1
     #- Legende
     Legende = Local_Dict['Legend']
-    TXT_Legende = tk.Text(Results_Frame,width=10,height=1)
+    TXT_Legende = tk.Text(Results_Frame,width=10,height=1,font='Verdana')
     TXT_Legende.insert(tk.END,Legende)
     TXT_Legende.grid(column=myCol,row=Result_row)
     myCol +=1
@@ -189,7 +189,7 @@ def AddRow(Local_Dict):#Name, Step, Frame, Rsult, Resulttype, View, Legend_Min ,
 def AddBTN(Frame,FrameName,Local_row,Local_col):
     print(FrameName, Local_row, Local_col)
     Name = 'BTN_' + FrameName + '_' + str(Local_col) + '_' + str(Local_row)
-    btn =  tk.Button(Frame, text='Close', command=lambda:RemoveRow(FrameName, Local_row, Local_col), font='AvenirNextCondensed',bg='black',fg='white',image=pixelVirtual,compound="c",width = 115)
+    btn =  tk.Button(Frame, text='Close', command=lambda:RemoveRow(FrameName, Local_row, Local_col), font='Verdana',bg='black',fg='white',image=pixelVirtual,compound="c",width = 115)
     btn.grid(column=Local_col,row=Local_row)
     BTN_Dict[Name] = btn
 
@@ -217,21 +217,21 @@ Logo_Label.grid(column=1,row=0)
 #- Results Headder Grid
 Results_Headder_Frame = tk.Frame(root, bg='#f89c0e', width=450, height=50, pady=3)
 Results_Headder_Frame.grid(column=0,row=1) 
-Results_Label = tk.Label(Results_Headder_Frame, text= 'Saved Results') 
+Results_Label = tk.Label(Results_Headder_Frame, text= 'Saved Results',font='Verdana') 
 Results_Label.grid(column=0,row=0) 
 
 #- Results Grid
 Results_Frame = tk.Frame(root, width=450, height=50, pady=3)
 Results_Frame.grid(column=0,row=2)
 for i,myTitle in enumerate(Result_Title):
-    Results_Titel_Label = tk.Label(Results_Frame, text= myTitle) 
+    Results_Titel_Label = tk.Label(Results_Frame, text= myTitle,font='Verdana') 
     Results_Titel_Label.grid(column=i,row=0) 
 
 
 #- View Headder Grid
 View_Headder_Frame = tk.Frame(root, bg='#f89c0e', width=450, height=50, pady=3)
 View_Headder_Frame.grid(column=0,row=3)
-View_Label = tk.Label(View_Headder_Frame, text= 'Saved Views') 
+View_Label = tk.Label(View_Headder_Frame, text= 'Saved Views',font='Verdana') 
 View_Label.grid(column=0,row=0) 
 
 #- View Grid
@@ -246,30 +246,30 @@ Buttons_Frame = tk.Frame(root, bg='grey', width=450, height=50, pady=3)
 Buttons_Frame.grid(column=0,row=5)
 myCol = 0
 #- Add BTN
-btn =  tk.Button(Buttons_Frame, text='Store', command=lambda:StoreResult(), font='AvenirNextCondensed',fg='black',image=pixelVirtual,compound="c",width = 115)
+btn =  tk.Button(Buttons_Frame, text='Store', command=lambda:StoreResult(), font='Verdana',fg='black',image=pixelVirtual,compound="c",width = 115)
 btn.grid(column=myCol,row=0)
 myCol += 1
 #- Load BTN
-btn =  tk.Button(Buttons_Frame, text='Load', command=lambda:ChooseFILE(), font='AvenirNextCondensed',fg='black',image=pixelVirtual,compound="c",width = 115)
+btn =  tk.Button(Buttons_Frame, text='Load', command=lambda:ChooseFILE(), font='Verdana',fg='black',image=pixelVirtual,compound="c",width = 115)
 btn.grid(column=myCol,row=0)
 myCol += 1
 #- ReLoad BTN
-btn =  tk.Button(Buttons_Frame, text='Reload', command=lambda:LoadSettings(), font='AvenirNextCondensed',fg='black',image=pixelVirtual,compound="c",width = 115)
+btn =  tk.Button(Buttons_Frame, text='Reload', command=lambda:LoadSettings(), font='Verdana',fg='black',image=pixelVirtual,compound="c",width = 115)
 btn.grid(column=myCol,row=0)
 myCol += 1
 #- Save BTN
-btn =  tk.Button(Buttons_Frame, text='Save', command=lambda:Save(), font='AvenirNextCondensed',fg='black',image=pixelVirtual,compound="c",width = 115)
+btn =  tk.Button(Buttons_Frame, text='Save', command=lambda:Save(), font='Verdana',fg='black',image=pixelVirtual,compound="c",width = 115)
 btn.grid(column=myCol,row=0)
 myCol += 1
 #- Close BTN
-btn =  tk.Button(Buttons_Frame, text='Close', command=lambda:Close(), font='AvenirNextCondensed',fg='black',image=pixelVirtual,compound="c",width = 115)
+btn =  tk.Button(Buttons_Frame, text='Close', command=lambda:Close(), font='Verdana',fg='black',image=pixelVirtual,compound="c",width = 115)
 btn.grid(column=myCol,row=0)
 myCol += 1
 
 ##- Label Grid
 Label_Frame = tk.Frame(root, bg='#f89c0e', width=450, height=50, pady=3)
 Label_Frame.grid(column=0,row=6)
-Logo_Label = tk.Label(Label_Frame,bg='#f89c0e', text= 'Enhanced View Manager for Abaqus by DI') 
+Logo_Label = tk.Label(Label_Frame,bg='#f89c0e', text= 'Enhanced View Manager for Abaqus by DI',font='Verdana') 
 Logo_Label.grid(column=1,row=0) 
 
 
