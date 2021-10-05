@@ -12,12 +12,12 @@ myVersion = platform.python_version()
 ################### IMPORTS tkinter
 if myVersion[0] == '3':
     import tkinter.filedialog
-    import tkinter.ttk
+    import tkinter.ttk as ttk
     import tkinter as tk
 
 if myVersion[0] == '2':
     import tkFileDialog as filedialog
-    # import Tkinter.ttk
+    import ttk as ttk
     import Tkinter as tk
 
 
@@ -151,7 +151,7 @@ def AddRow(Local_Dict):#Name, Step, Frame, Rsult, Resulttype, View, Legend_Min ,
     myCol +=1
     #- Resulttype
     Resulttype = Local_Dict['Resulttype']
-    CMB_Resulttype = tkinter.ttk.Combobox(Results_Frame,width=10,height=20,values=["Contour","Symbols"])
+    CMB_Resulttype = ttk.Combobox(Results_Frame,width=10,height=20,values=["Contour","Symbols"])
     CMB_Resulttype.grid(column=myCol,row=Result_row)
     if Resulttype == "Symbols":
         CMB_Resulttype.current(1)
