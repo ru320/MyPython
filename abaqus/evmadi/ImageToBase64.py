@@ -2,7 +2,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-with open("die-ingenieure-logo.png", "rb") as image_file:
+with open("logo_suite.gif", "rb") as image_file:
     data = base64.b64encode(image_file.read())
 
 print(data)
