@@ -54,6 +54,8 @@ Result_row = 1
 BTN_Dict = {}
 Result_Title = ['Load','Name', 'Step', 'Frame', 'Result', 'Resulttype', 'View', 'Legend Min' , 'Legend Max' ,'Legend']
 Result_Dict  = {}
+ViewDict = {}
+ViewIndex = 0
 
 #- Dummy Dict
 def dummy_Dict():
@@ -78,9 +80,39 @@ def Close():
 def Load(Local_row):
     print('Load Result' , Local_row)
 
-#- Choose File GUI
+#- Ergebnis Speichern
 def StoreResult():
     print('Store Result')
+    #Umbiegen, StoreView
+    global ViewDict
+    global ViewIndex
+    myVName = session.currentViewportName
+    session.viewports['Viewport: 2'].view.setValues(
+        nearPlane           =ViewDict[0][0],
+        farPlane            =ViewDict[0][1],
+        cameraPosition      =ViewDict[0][2],
+        cameraUpVector      =ViewDict[0][3],
+        cameraTarget        =ViewDict[0][4],
+        width               =ViewDict[0][5],
+        height              =ViewDict[0][6],)
+
+#- View Speichern
+def StoreView():
+    global ViewDict
+    global ViewIndex
+    myVName = session.currentViewportName
+    myNearPlane = session.viewports[myVName].view.nearPlane
+    myFarPlane  = session.viewports[myVName].view.farPlane
+    myCameraPos = session.viewports[myVName].view.cameraPosition
+    myCameraUPV = session.viewports[myVName].view.cameraUpVector
+    myCameraTar = session.viewports[myVName].view.cameraTarget
+    width       = session.viewports[myVName].view.width
+    height      = session.viewports[myVName].view.height
+    myView = [myNearPlane,myFarPlane,myCameraPos,myCameraUPV,myCameraTar,width,height]
+    ViewDict[ViewIndex] = myView
+    ViewIndex += 1
+    print('Store View')
+    print(myView)
 
 #- Choose File GUI
 def ChooseFILE():
@@ -252,7 +284,11 @@ Buttons_Frame = tk.Frame(root, bg='grey', width=450, height=50, pady=3)
 Buttons_Frame.grid(column=0,row=5)
 myCol = 0
 #- Add BTN
-btn =  tk.Button(Buttons_Frame, text='Store', command=lambda:StoreResult(), font='Verdana',fg='black',image=pixelVirtual,compound="c",width = 115)
+btn =  tk.Button(Buttons_Frame, text='Store Result', command=lambda:StoreResult(), font='Verdana',fg='black',image=pixelVirtual,compound="c",width = 115)
+btn.grid(column=myCol,row=0)
+myCol += 1
+#- Add BTN
+btn =  tk.Button(Buttons_Frame, text='Store View', command=lambda:StoreView(), font='Verdana',fg='black',image=pixelVirtual,compound="c",width = 115)
 btn.grid(column=myCol,row=0)
 myCol += 1
 #- Load BTN
