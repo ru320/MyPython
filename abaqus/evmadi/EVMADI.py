@@ -86,7 +86,10 @@ def StoreResult():
 def ChooseFILE():
     global myFile
     print('Choose File')
-    myFile = tk.filedialog.askopenfilename(title = "Select XML file for EVMADI",filetypes = (("XML Files","*.xml"),))
+    if myVersion[0] == '3':
+        myFile = tk.filedialog.askopenfilename(title = "Select XML file for EVMADI",filetypes = (("XML Files","*.xml"),))
+    if myVersion[0] == '2':
+        myFile = filedialog.askopenfilename(title = "Select XML file for EVMADI",filetypes = (("XML Files","*.xml"),))
     LoadSettings()
 
 #- Load Settings
@@ -101,7 +104,10 @@ def LoadSettings():
 #- Save Settings
 def Save():
     global myFile
-    mySaveFile = tk.filedialog.asksaveasfile(title = "Save XML file for EVMADI",mode='w', defaultextension=".xml")
+    if myVersion[0] == '3':
+        mySaveFile = tk.filedialog.asksaveasfile(title = "Save XML file for EVMADI",mode='w', defaultextension=".xml")
+    if myVersion[0] == '2':
+        mySaveFile = filedialog.asksaveasfile(title = "Save XML file for EVMADI",mode='w', defaultextension=".xml")
     if mySaveFile is None: # asksaveasfile return `None` if dialog closed with "cancel".
         print('Abbruch')
         return
