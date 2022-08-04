@@ -139,5 +139,5 @@ def decrypt(myCryptText):
 if __name__ == '__main__':
     encrypt("asiouqweoiwuerkds4weoiuxck,wrexcoiuewr.dfsdllum,wer,", "E:/test.lic")
 
-    with open("E:/test.lic", 'r') as file:
+    with open("test.lic", 'r') as file:
         print(decrypt(file.read()))

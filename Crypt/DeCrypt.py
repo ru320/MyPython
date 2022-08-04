@@ -9,7 +9,7 @@ source = asciisource + dezisource + specialsource
 mysourcelen = len(source)
 
 
-zeilenlaenge = 256
+zeilenlaenge = 64
 Absatze = 2
 OffsetIniPos = 2
 offsetpos = zeilenlaenge * Absatze + Absatze + OffsetIniPos
@@ -17,33 +17,42 @@ offsetpos = zeilenlaenge * Absatze + Absatze + OffsetIniPos
 TextBeginnZeile = 10
 textposition = 0
 
+myFile = 'DI_Bolts.lic'
+myFile = 'somefile.txt'
 
-with open('somefile.txt', 'r') as the_file:
+
+with open(myFile, 'r') as the_file:
     myCyptText = the_file.read()
     offset = myCyptText[offsetpos]
     shiftpos = zeilenlaenge * 5 + 5 + int(offset) * int(offset)
     shift = myCyptText[shiftpos]
 
+print(offset)
+print(shift)
+
 
 
 myText = ""
 textposition = 0
-with open('somefile.txt', 'r') as the_file:
+with open(myFile, 'r') as the_file:
     for i,myline in enumerate(the_file):
         Zeilenpos = textposition * int(shift)**2
         while True:
-            if Zeilenpos > 255:
-                Zeilenpos = Zeilenpos - 256
+            if Zeilenpos >= zeilenlaenge:
+                Zeilenpos = Zeilenpos - zeilenlaenge
             else:
                 break
+        if i == TextBeginnZeile:
+            print(myline)
         if i >= TextBeginnZeile:
             myChar = myline[Zeilenpos]
             textposition +=1
+            print(myChar,Zeilenpos)
             if myChar == "|":
                 break
             myText += str(myChar)
             
-
+print(myText)
 myDecryptedText = ""
 for i,myChar in enumerate(myText):
     myCharPos = source.find(myChar)

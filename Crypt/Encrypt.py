@@ -19,21 +19,21 @@ EndBool = False
 
 
 
-myText = 'AA'
+myText = 'test 64'
 laenge = len(myText)
-
+zeilen_laenge = 64
 
 with open('somefile.txt', 'w') as the_file:
     for i in range(256):
         randstr = ""
         Zeilenpos = textposition * int(shift)**2
         while True:
-            if Zeilenpos > 255:
-                Zeilenpos = Zeilenpos - 256
+            if Zeilenpos > zeilen_laenge:
+                Zeilenpos = Zeilenpos - zeilen_laenge
                 # print(Zeilenpos)
             else:
                 break
-        for j in range(256):
+        for j in range(zeilen_laenge):
             # Zusatz
             if i == 2 and j == 2:
                 # Offset
